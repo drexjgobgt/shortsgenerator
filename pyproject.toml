@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shortsgen"
+version = "0.1.0"
+description = "AI YouTube Shorts generator lokal (9Router + FFmpeg + YouTube Data API v3)"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "python-dotenv>=1.0.0",
+    "Pillow>=10.0",
+    "numpy>=1.24",
+    "edge-tts>=6.1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+youtube = ["google-api-python-client>=2.0", "google-auth-oauthlib>=1.0"]
+voice-review = ["faster-whisper>=1.2,<2", "huggingface-hub>=0.21,<1.0"]
+qr-demo = ["qrcode>=7.4", "zxing-cpp>=2.2"]
+
+[tool.setuptools]
+packages = { find = { include = ["shortsgen*"] } }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]

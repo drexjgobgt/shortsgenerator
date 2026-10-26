@@ -1,0 +1,1 @@
+"""Utilitas umum."""

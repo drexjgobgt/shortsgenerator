@@ -1,0 +1,59 @@
+# Secrets & local config
+.env
+.env.*
+!.env.example
+**/client_secrets.json
+**/token.json
+**/credentials*.json
+*.pem
+*.p12
+*.pfx
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime data (jobs, media, logs, db)
+data/
+logs/
+*.db
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.log
+*.jsonl
+
+# OAuth / tokens / credentials
+client_secrets.json
+token.json
+*.token.json
+credentials*.json
+
+# Media scratch
+*.mp3
+*.wav
+*.mp4
+*.srt
+*.vtt
+9router-test.png
+
+# Local production notes and one-off media import scripts. Keep only
+# reusable, read-only analysis and voice-review utilities public.
+/docs/
+/scripts/*
+!/scripts/analyze_channel.py
+!/scripts/analyze_trends.py
+!/scripts/check_bebek_voice.py
+!/scripts/align_bebek_voice.py
+
+# Editor/OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
