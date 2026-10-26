@@ -120,3 +120,16 @@ def test_microwave_and_onion_plans_match_indonesian_narration():
     assert "onion" in onion["shared_tokens"]
     assert "enzyme" in onion["shared_tokens"]
     assert onion["score"] >= 6
+
+
+def test_pineapple_plan_matches_indonesian_narration():
+    from shortsgen.story.relevance import score_visual_plan
+
+    result = score_visual_plan(
+        "Bromelain adalah campuran enzim pemecah protein dari nanas.",
+        "fresh pineapple chunks rich in the bromelain protein digesting enzyme",
+        subject="pineapple chunks", topic="Kenapa nanas membuat lidah perih?",
+    )
+    assert "pineapple" in result["shared_tokens"]
+    assert "enzyme" in result["shared_tokens"]
+    assert result["score"] >= 6
