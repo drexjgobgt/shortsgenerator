@@ -27,6 +27,7 @@ IMPLEMENTED_STAGES: tuple[str, ...] = (
     "qa",
     "preview",
     "upload",
+    "schedule",
 )
 
 
@@ -86,6 +87,10 @@ def build_handlers(
         from .upload import UploadStage
 
         handlers["upload"] = UploadStage(providers, config, logger=log)
+    if "schedule" in wanted:
+        from .schedule import ScheduleStage
+
+        handlers["schedule"] = ScheduleStage(providers, config, logger=log)
 
     # Gerbang approval selalu tersedia (mock: lolos otomatis; live: menunggu manusia).
     if "approval" in wanted or stages is None:

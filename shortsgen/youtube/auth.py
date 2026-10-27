@@ -21,6 +21,8 @@ from ..errors import ShortsGenError
 SCOPES: tuple[str, ...] = (
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.readonly",
+    # Diperlukan untuk menyetel status.publishAt (penjadwalan tayang).
+    "https://www.googleapis.com/auth/youtube",
 )
 
 

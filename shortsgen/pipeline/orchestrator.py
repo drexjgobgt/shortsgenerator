@@ -252,19 +252,37 @@ class Pipeline:
         result.status = JobStatus.DONE
         return result
 
-    def approve(self, job_id: str, *, note: str = "", visibility: str = "private") -> None:
-        """Setujui stage `approval` yang tertahan (gerbang manusia)."""
+    def approve(
+        self,
+        job_id: str,
+        *,
+        note: str = "",
+        visibility: str = "private",
+        publish_at: Optional[str] = None,
+    ) -> None:
+        """Setujui stage `approval` yang tertahan (gerbang manusia).
+
+        `publish_at` (ISO-8601) opsional; bila diisi, stage `schedule` akan
+        menjadwalkan penayangan dengan `publishAt` tersebut.
+        """
         if visibility not in ("private", "unlisted", "public"):
             raise ValueError("Visibilitas approval tidak valid")
+        if publish_at is not None:
+            from .stages.schedule import parse_publish_at, validate_publish_at
+
+            validate_publish_at(parse_publish_at(publish_at))
         record = self.repo.get_stage(job_id, "approval")
         if record is None or record.status != StageStatus.BLOCKED:
             raise StageBlocked("approval", "Tidak ada stage approval yang menunggu persetujuan")
+        artifacts = {"approved": True, "approved_at": utcnow_iso(), "note": note,
+                     "upload_visibility": visibility}
+        if publish_at is not None:
+            artifacts["publish_at"] = publish_at
         self.repo.finish_stage(
             job_id,
             "approval",
             StageStatus.DONE,
-            artifacts={"approved": True, "approved_at": utcnow_iso(), "note": note,
-                       "upload_visibility": visibility},
+            artifacts=artifacts,
         )
         self.repo.set_job_status(job_id, JobStatus.RUNNING)
         self.repo.add_event(job_id, "info", "Stage approval disetujui oleh pengguna", {"note": note})

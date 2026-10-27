@@ -415,11 +415,20 @@ def cmd_approve(args: argparse.Namespace) -> int:
     providers = build_providers(config)
     pipeline = Pipeline(repo, config, providers)
     try:
-        pipeline.approve(args.job, note=args.note or "", visibility=getattr(args, "visibility", "private"))
+        pipeline.approve(
+            args.job,
+            note=args.note or "",
+            visibility=getattr(args, "visibility", "private"),
+            publish_at=getattr(args, "publish_at", None),
+        )
     except ShortsGenError as exc:
         print(f"ERROR: {exc}")
         repo.close()
         return EXIT_ERROR
+    except ValueError as exc:
+        print(f"ERROR: {exc}")
+        repo.close()
+        return EXIT_CONFIG
     print(f"Approval untuk {args.job} dicatat. Lanjutkan: python -m shortsgen run --job {args.job}")
     repo.close()
     return EXIT_OK
@@ -806,6 +815,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_approve.add_argument("--note", default="")
     p_approve.add_argument("--visibility", choices=["private", "unlisted", "public"], default="private",
                            help="visibilitas upload yang disetujui khusus job ini (default private)")
+    p_approve.add_argument("--publish-at", default=None,
+                           help="opsional: jadwalkan tayang (ISO-8601, mis. 2026-10-27T20:30:00+07:00; min. 15 menit ke depan)")
     p_approve.set_defaults(func=cmd_approve)
 
     p_status = subparsers.add_parser("status", help="status job + stage")

@@ -173,10 +173,12 @@ def test_approval_gate_blocks_in_live_mode(tmp_path: Path) -> None:
         pipeline.approve(job.id, note="uji")
         result2 = pipeline.run(job.id)
         assert result2.status == JobStatus.DONE
-        # upload diimplementasikan (Fase F); schedule belum -> tercatat gap, bukan "done"
-        assert "schedule" in result2.stages_gap
+        # upload diimplementasikan (Fase F); schedule kini ada dan dilewati
+        # bila tidak ada jadwal diminta (bukan gap).
+        assert "schedule" not in result2.stages_gap
         assert repo.get_stage(job.id, "upload").status == StageStatus.DONE
-        assert repo.get_stage(job.id, "schedule").status == StageStatus.SKIPPED
+        # Tanpa --publish-at, stage schedule selesai tanpa menjadwalkan apa pun.
+        assert repo.get_stage(job.id, "schedule").status in (StageStatus.DONE, StageStatus.SKIPPED)
         approval = repo.get_stage(job.id, "approval")
         assert approval.artifacts.get("approved") is True
     finally:

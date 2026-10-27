@@ -2,7 +2,7 @@
 
 Generator YouTube Shorts lokal berbasis Python untuk Windows. Alurnya: topik → riset/naskah → storyboard → aset visual → narasi → subtitle → render vertikal → QA → pratinjau → persetujuan → upload melalui YouTube Data API v3.
 
-**Status:** pipeline produksi, evaluasi, dan upload resumable sudah berjalan. Tahap `schedule`/`publishAt` **belum diimplementasikan**. Upload tidak otomatis: default **private** dan selalu membutuhkan persetujuan per job; `public`/`unlisted` hanya jika dipilih eksplisit saat approval. Video memakai gerak kamera 2.5D pada gambar, **bukan** animasi 3D generatif.
+**Status:** pipeline produksi, evaluasi, upload resumable, dan penjadwalan tayang (`publishAt`) sudah berjalan. Upload tidak otomatis: default **private** dan selalu membutuhkan persetujuan per job; `public`/`unlisted` hanya jika dipilih eksplisit saat approval. Video memakai gerak kamera 2.5D pada gambar, **bukan** animasi 3D generatif.
 
 ## Mulai cepat: mock/offline
 
@@ -26,7 +26,7 @@ python -m pytest
 
 ## Mode live dan publikasi
 
-1. Jalankan **9Router** secara lokal; atur `NINE_ROUTER_BASE_URL` dan `NINE_ROUTER_API_KEY` di `.env`. Sebagai alternatif lokal, `NINE_ROUTER_API_KEY_FROM_LOCAL_DB=true` membaca key dari instalasi 9Router milik Anda. Pilih model dan provider yang tersedia untuk akun Anda; model gratis/kuota dapat berubah. Tanpa konfigurasi provider search/fetch, verifikasi sumber dilakukan manual — jangan menganggap klaim tanpa sumber sudah terbukti.
+1. Jalankan **9Router** secara lokal; atur `NINE_ROUTER_BASE_URL` dan `NINE_ROUTER_API_KEY` di `.env`. Sebagai alternatif lokal, `NINE_ROUTER_API_KEY_FROM_LOCAL_DB=true` membaca key dari instalasi 9Router milik Anda. Default LLM gratis KiosAPI (prefix `kios/` di 9Router) ialah `kios/minimax-m3.1-flash-free`; contoh fallback berurutan ialah `kios/qwen3.8-flash-free` dan `kios/glm-5.3-flash-free`. Salin pilihan tersebut ke `.env` lama bila sudah ada, karena perubahan `.env.example` tidak menimpanya. Ketersediaan, latensi, dan kuota model gratis dapat berubah; tanpa konfigurasi provider search/fetch, verifikasi sumber dilakukan manual — jangan menganggap klaim tanpa sumber sudah terbukti.
 2. Untuk upload, pasang `python -m pip install -e ".[youtube]"`, aktifkan YouTube Data API v3, buat OAuth **Desktop app**, dan simpan hasil unduhan sebagai `client_secrets.json` di akar proyek (atau set `YOUTUBE_CLIENT_SECRETS`). Login dengan `python -m shortsgen auth`. Token OAuth default disimpan di `<DATA_DIR>/auth/token.json`.
 3. Jalankan job, periksa `artifacts/` dan preview, lalu setujui **hanya** jika konten, audiens, dan visibilitasnya sudah benar:
 
@@ -43,6 +43,15 @@ python -m shortsgen run --job <job_id> --mode live
 
 `approve` tanpa `--visibility` menggunakan default private. Jangan jalankan kedua perintah approval sekaligus. Set `YOUTUBE_MADE_FOR_KIDS` sesuai audiens sebenarnya; nilai contoh `false` ditujukan untuk audiens umum, bukan untuk konten yang memang menyasar anak-anak. Kategori, suara, dan disclosure konten sintetis perlu ditinjau sebelum upload. Pipeline memeriksa duplikat (fingerprint video), menggunakan OAuth resmi dan menunggu pemrosesan YouTube.
 
+Untuk menjadwalkan tayang, tambahkan `--publish-at` (ISO-8601, minimal 15 menit ke depan). Stage `schedule` menyetel `status.publishAt` dan menjaga video tetap private sampai waktunya:
+
+```powershell
+python -m shortsgen approve --job <job_id> --mode live --visibility public --publish-at 2026-10-27T20:30:00+07:00
+python -m shortsgen run --job <job_id> --mode live
+```
+
+Video yang sudah `public` tidak bisa dijadwalkan (batasan YouTube), jadi jadwalkan sebelum tayang.
+
 ## Fitur utama
 
 - Story arc dengan hook, konteks, eskalasi, fakta, dan payoff; tipe klaim `verified`, `theory`, `speculation`, atau `dramatization`.
@@ -58,7 +67,7 @@ Perintah tambahan: `python -m shortsgen --help`, `status`, `list`, `rerun`, `eva
 - **Jangan commit** `.env`, `client_secrets.json`, token OAuth, key provider, database, log, artefak job, atau video. Semua diabaikan oleh `.gitignore`; simpan data runtime di folder lokal milik Anda. `.env.example` berisi placeholder kosong, bukan kredensial.
 - Provider berbayar tidak diaktifkan secara default (`ALLOW_PAID_PROVIDERS=false`). Biaya/kuota akun eksternal perlu diperiksa sebelum mengaktifkannya.
 - Tanpa sumber yang dapat dicek, klaim tidak boleh dipresentasikan sebagai fakta terverifikasi. Visual AI/diagram adalah ilustrasi, bukan bukti eksperimen.
-- Tidak ada video generatif gratis yang dijamin tersedia; default fallback berupa gambar/gerak kamera FFmpeg. Tidak ada penjadwalan `publishAt` pada versi ini.
+- Tidak ada video generatif gratis yang dijamin tersedia; default fallback berupa gambar/gerak kamera FFmpeg. Stage `schedule` tersedia, tetapi YouTube dapat menolak `publishAt` (`invalidPublishAt`) untuk kanal yang fitur penjadwalannya belum aktif; dalam kasus itu video tetap pada visibilitas hasil upload.
 - Retensi penonton dan CTR Shorts tidak dapat disimpulkan dari QA lokal atau YouTube Data API; ukur di YouTube Studio.
 
 Kode inti ada di `shortsgen/`; pengujian di `tests/`. Contoh konfigurasi lengkap: [`.env.example`](.env.example). Repositori publik ini sengaja tidak memuat catatan produksi pribadi, media contoh, atau kredensial.

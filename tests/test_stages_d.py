@@ -435,7 +435,7 @@ def test_full_mock_pipeline_produces_valid_mp4(
     result = pipeline.run(job.id)
 
     assert result.status == JobStatus.DONE, result.error
-    assert result.stages_gap == ["schedule"]  # penjadwalan (publishAt) belum diimplementasikan
+    assert result.stages_gap == []  # semua stage punya handler; schedule dilewati tanpa jadwal
     assert set(result.stages_done) >= {
         "research", "script", "review", "scenes", "assets", "tts", "subtitles", "render", "qa", "preview", "upload",
     }
